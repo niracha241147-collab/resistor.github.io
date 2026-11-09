@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกมอ่านค่าแถบสีตัวต้านทานไฟฟ้า - ฟิสิกส์ ม.5 (โหมดครูผู้สอนสมบูรณ์)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Sarabun & Chakra Petch -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Sarabun:wght@300;400;600;700&display=swap');
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #0b1120;
+      color: #f8fafc;
+    }
+    .font-tech {
+      font-family: 'Chakra Petch', sans-serif;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    /* Pulse animations */
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+    }
+    .glow-effect {
+      animation: pulse-glow 3s infinite;
+    }
+    /* Custom toast alert box */
+    #toastContainer {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 md:p-6 bg-slate-950">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Header Bar -->
+  <header class="max-w-6xl mx-auto w-full bg-slate-900/90 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-xl mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-3 rounded-xl shadow-lg shadow-indigo-500/30">
+        <i class="fa-solid fa-bolt text-2xl text-yellow-300"></i>
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold text-white tracking-wide font-tech flex items-center gap-2">
+          RESISTOR COLOR CODE <span class="text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full font-normal">ฟิสิกส์ ม.5</span>
+        </h1>
+        <p class="text-xs text-slate-400">เรียนรู้และฝึกคำนวณรหัสสีตัวต้านทาน 4 แถบสี พร้อมระบบแข่งขันและรายงานคะแนน</p>
+      </div>
+    </div>
+
+    <!-- Top Action Buttons -->
+    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+      <button onclick="toggleModal('refModal')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-2 transition">
+        <i class="fa-solid fa-book-bookmark text-indigo-400"></i> ดูตารางรหัสสี
+      </button>
+      <button onclick="toggleTeacherView()" id="btnTeacherToggle" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20 transition">
+        <i class="fa-solid fa-user-gear"></i> <span id="teacherToggleText">เข้าสู่โหมดครูผู้สอน</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Area (Student Game View vs Teacher Dashboard View) -->
+  <div class="max-w-6xl mx-auto w-full flex-grow">
+
+    <!-- ========================================== -->
+    <!-- STUDENT GAME VIEW                          -->
+    <!-- ========================================== -->
+    <main id="studentView" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Player Profile & Game Modes (4 Columns) -->
+      <div class="lg:col-span-4 space-y-5">
+        
+        <!-- Player Info Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
+          <h2 class="text-md font-bold text-indigo-400 mb-3 flex items-center gap-2 font-tech">
+            <i class="fa-solid fa-id-card"></i> ข้อมูลผู้เรียน
+          </h2>
+          <div class="space-y-3 text-sm">
+            <div>
+              <label class="text-slate-400 text-xs font-semibold">ชื่อ-นามสกุล นักเรียน:</label>
+              <input type="text" id="playerName" value="นักเรียน ม.5" onchange="updatePlayerProfile()" class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 text-white text-sm outline-none mt-1 transition">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-slate-400 text-xs font-semibold">เลขที่ / รหัส:</label>
+                <input type="text" id="playerNo" value="01" onchange="updatePlayerProfile()" class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 text-white text-sm outline-none mt-1 transition">
+              </div>
+              <div>
+                <label class="text-slate-400 text-xs font-semibold">ทีม:</label>
+                <select id="playerTeam" onchange="updatePlayerProfile()" class="w-full bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2 text-white text-sm outline-none mt-1 transition">
+                  <option value="red">🔴 ทีมสีแดง</option>
+                  <option value="blue">🔵 ทีมสีน้ำเงิน</option>
+                  <option value="green">🟢 ทีมสีเขียว</option>
+                  <option value="yellow">🟡 ทีมสีเหลือง</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Selector Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg space-y-3">
+          <h2 class="text-md font-bold text-indigo-400 mb-2 flex items-center justify-between font-tech">
+            <span><i class="fa-solid fa-gamepad"></i> เลือกโหมดการเล่น</span>
+            <span id="qBankBadge" class="text-[10px] bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded-md font-normal">โหมดสุ่มระบบ</span>
+          </h2>
+          
+          <button onclick="setGameMode('fill')" id="btn-mode-fill" class="w-full text-left p-3.5 rounded-xl border-2 border-indigo-500 bg-indigo-950/40 hover:bg-indigo-900/40 transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-indigo-300 group-hover:text-white transition">1. โหมดระบายสีตัวต้านทาน</div>
+              <div class="text-xs text-slate-400">ระบบให้ค่าโอห์ม -> นักเรียนเลือกระบายสี</div>
+            </div>
+            <i class="fa-solid fa-palette text-indigo-400 text-lg"></i>
+          </button>
+
+          <button onclick="setGameMode('calc')" id="btn-mode-calc" class="w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/60 transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-emerald-400 group-hover:text-emerald-300 transition">2. โหมดอ่านและคำนวณค่า</div>
+              <div class="text-xs text-slate-400">ระบบให้รูปสี -> นักเรียนเลือกคำตอบโอห์ม</div>
+            </div>
+            <i class="fa-solid fa-calculator text-emerald-400 text-lg"></i>
+          </button>
+
+          <button onclick="setGameMode('team')" id="btn-mode-team" class="w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/60 transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-amber-400 group-hover:text-amber-300 transition">3. แข่งทำเวลาสะสมคะแนนทีม</div>
+              <div class="text-xs text-slate-400">ตอบให้ได้มากที่สุดในเวลา 60 วินาที</div>
+            </div>
+            <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Quick Stats Widget -->
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg grid grid-cols-2 gap-3 text-center">
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            <div class="text-xs text-slate-400">ตอบถูกสะสม</div>
+            <div id="statCorrect" class="text-xl font-bold text-emerald-400 font-tech mt-1">0 ข้อ</div>
+          </div>
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            <div class="text-xs text-slate-400">ความแม่นยำ</div>
+            <div id="statAccuracy" class="text-xl font-bold text-indigo-400 font-tech mt-1">0%</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Interactive Resistor & Question Area (8 Columns) -->
+      <div class="lg:col-span-8 space-y-6">
+        
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl relative min-h-[480px] flex flex-col justify-between">
+          
+          <!-- Top Header inside Game Box -->
+          <div class="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <span id="modeBadge" class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold px-3 py-1 rounded-full">
+                โหมด 1: ระบายสีตัวต้านทาน
+              </span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <!-- Timer display for Team Mode -->
+              <div id="timerBox" class="hidden flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-xl text-amber-400 font-tech font-bold text-sm">
+                <i class="fa-solid fa-stopwatch animate-spin"></i> เวลาเหลือ: <span id="timerText" class="text-lg">60</span>s
+              </div>
+
+              <!-- Live Score Box -->
+              <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 px-4 py-1.5 rounded-xl">
+                <span class="text-xs text-slate-400 font-semibold">คะแนน:</span>
+                <span id="scoreText" class="text-2xl font-bold text-amber-400 font-tech">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Target Question Banner -->
+          <div class="my-4 bg-slate-950 p-4 rounded-xl border border-slate-800 text-center shadow-inner relative overflow-hidden">
+            <div class="text-xs text-slate-400 mb-1 font-semibold" id="questHeaderLabel">จงเลือกแถบสีให้ตรงกับค่าความต้านทานที่กำหนด:</div>
+            <div id="targetText" class="text-2xl md:text-3xl font-extrabold text-emerald-400 font-tech tracking-wide py-1">
+              1,000 Ω ± 5%
+            </div>
+            <div id="customTag" class="hidden text-[10px] text-amber-400 mt-1"><i class="fa-solid fa-star"></i> โจทย์พิเศษจากครูผู้สอน</div>
+          </div>
+
+          <!-- Resistor SVG Rendering Graphic -->
+          <div class="flex justify-center items-center my-4 py-6 bg-slate-950/40 rounded-xl border border-slate-800/60 relative">
+            <svg width="340" height="120" viewBox="0 0 340 120" class="drop-shadow-2xl max-w-full">
+              <!-- Terminal Wires -->
+              <rect x="0" y="54" width="70" height="12" fill="#94a3b8" rx="2" />
+              <rect x="270" y="54" width="70" height="12" fill="#94a3b8" rx="2" />
+              
+              <!-- Resistor Main Ceramic Body -->
+              <path d="M 60,30 Q 75,10 95,20 L 245,20 Q 265,10 280,30 Q 285,60 280,90 Q 265,110 245,100 L 95,100 Q 75,110 60,90 Q 55,60 60,30 Z" fill="#d97706" stroke="#b45309" stroke-width="2"/>
+              
+              <!-- Color Bands -->
+              <!-- Band 1: 1st Digit -->
+              <rect id="band1" x="95" y="19" width="18" height="82" fill="#78350f" rx="3" class="transition-all duration-300" />
+              <!-- Band 2: 2nd Digit -->
+              <rect id="band2" x="135" y="20" width="18" height="80" fill="#000000" rx="3" class="transition-all duration-300" />
+              <!-- Band 3: Multiplier -->
+              <rect id="band3" x="175" y="20" width="18" height="80" fill="#ea580c" rx="3" class="transition-all duration-300" />
+              <!-- Band 4: Tolerance -->
+              <rect id="band4" x="235" y="20" width="18" height="80" fill="#eab308" rx="3" class="transition-all duration-300" />
+
+              <!-- Visual Shine / Gloss Overlay -->
+              <path d="M 60,35 Q 75,20 95,28 L 245,28 Q 265,20 280,35" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.25" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- CONTROL MODE 1: COLOR SELECTORS (FILL MODE) -->
+          <div id="fillControls" class="space-y-4">
+            <p class="text-xs text-slate-400 text-center">เลือกแถบสีทั้ง 4 แถบด้านล่าง เพื่อประกอบเป็นค่าความต้านทานตามโจทย์:</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              
+              <!-- Band 1 Select -->
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <label class="block text-[11px] text-slate-400 font-bold mb-1">แถบที่ 1 (หลักที่ 1)</label>
+                <select id="selBand1" onchange="updateResistorSVGFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs font-semibold focus:border-indigo-500 outline-none">
+                  <option value="1">🟤 1 (น้ำตาล)</option>
+                  <option value="2">🔴 2 (แดง)</option>
+                  <option value="3">🟠 3 (ส้ม)</option>
+                  <option value="4">🟡 4 (เหลือง)</option>
+                  <option value="5">🟢 5 (เขียว)</option>
+                  <option value="6">🔵 6 (น้ำเงิน)</option>
+                  <option value="7">🟣 7 (ม่วง)</option>
+                  <option value="8">⚪ 8 (เทา)</option>
+                  <option value="9">⚪ 9 (ขาว)</option>
+                </select>
+              </div>
+
+              <!-- Band 2 Select -->
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <label class="block text-[11px] text-slate-400 font-bold mb-1">แถบที่ 2 (หลักที่ 2)</label>
+                <select id="selBand2" onchange="updateResistorSVGFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs font-semibold focus:border-indigo-500 outline-none">
+                  <option value="0">⬛ 0 (ดำ)</option>
+                  <option value="1">🟤 1 (น้ำตาล)</option>
+                  <option value="2">🔴 2 (แดง)</option>
+                  <option value="3">🟠 3 (ส้ม)</option>
+                  <option value="4">🟡 4 (เหลือง)</option>
+                  <option value="5">🟢 5 (เขียว)</option>
+                  <option value="6">🔵 6 (น้ำเงิน)</option>
+                  <option value="7">🟣 7 (ม่วง)</option>
+                  <option value="8">⚪ 8 (เทา)</option>
+                  <option value="9">⚪ 9 (ขาว)</option>
+                </select>
+              </div>
+
+              <!-- Band 3 Select (Multiplier) -->
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <label class="block text-[11px] text-slate-400 font-bold mb-1">แถบที่ 3 (ตัวคูณ)</label>
+                <select id="selBand3" onchange="updateResistorSVGFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs font-semibold focus:border-indigo-500 outline-none">
+                  <option value="0">⬛ x1 (ดำ)</option>
+                  <option value="1">🟤 x10 (น้ำตาล)</option>
+                  <option value="2">🔴 x100 (แดง)</option>
+                  <option value="3">🟠 x1k (ส้ม)</option>
+                  <option value="4">🟡 x10k (เหลือง)</option>
+                  <option value="5">🟢 x100k (เขียว)</option>
+                  <option value="6">🔵 x1M (น้ำเงิน)</option>
+                  <option value="-1">🥇 x0.1 (ทอง)</option>
+                  <option value="-2">🥈 x0.01 (เงิน)</option>
+                </select>
+              </div>
+
+              <!-- Band 4 Select (Tolerance) -->
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <label class="block text-[11px] text-slate-400 font-bold mb-1">แถบที่ 4 (คลาดเคลื่อน)</label>
+                <select id="selBand4" onchange="updateResistorSVGFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs font-semibold focus:border-indigo-500 outline-none">
+                  <option value="5">🥇 ±5% (ทอง)</option>
+                  <option value="10">🥈 ±10% (เงิน)</option>
+                  <option value="1">🟤 ±1% (น้ำตาล)</option>
+                  <option value="2">🔴 ±2% (แดง)</option>
+                </select>
+              </div>
+
+            </div>
+
+            <button onclick="checkFillAnswer()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-600/30 text-sm transition transform active:scale-98">
+              <i class="fa-solid fa-check-circle mr-1"></i> ส่งคำตอบตรวจแถบสี
+            </button>
+          </div>
+
+          <!-- CONTROL MODE 2 & 3: MULTIPLE CHOICE BUTTONS -->
+          <div id="calcControls" class="hidden space-y-4">
+            <p class="text-xs text-slate-400 text-center">คำนวณค่าโอห์มและความคลาดเคลื่อนจากตัวต้านทาน แล้วเลือกตัวเลือกที่ถูกต้อง:</p>
+            <div id="choiceContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Choices generated dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Start Team Match Overlay Button (if team mode and not started) -->
+          <div id="teamStartOverlay" class="hidden bg-slate-950/90 backdrop-blur absolute inset-0 rounded-2xl flex flex-col items-center justify-center p-6 text-center z-10">
+            <i class="fa-solid fa-stopwatch-20 text-5xl text-amber-400 mb-3 animate-bounce"></i>
+            <h3 class="text-xl font-bold text-white mb-2 font-tech">พร้อมสำหรับการแข่งขันแบบทีม?</h3>
+            <p class="text-xs text-slate-300 max-w-md mb-5">
+              คุณมีเวลา 60 วินาที ในการทำโจทย์อ่านค่าความต้านทานให้ได้มากที่สุด คะแนนจะถูกบันทึกสมทบเข้ากับทีมที่คุณเลือก!
+            </p>
+            <button onclick="startTeamMatch()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold px-8 py-3.5 rounded-xl text-base shadow-lg shadow-amber-500/30 transition transform hover:scale-105">
+              <i class="fa-solid fa-play mr-2"></i> เริ่มจับเวลาเลย!
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- TEACHER DASHBOARD VIEW (PIN PROTECTED)     -->
+    <!-- ========================================== -->
+    <main id="teacherView" class="hidden space-y-6">
+
+      <!-- Header & Pin Setup Bar -->
+      <div class="bg-slate-900 border border-amber-500/30 p-5 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2 font-tech">
+            <i class="fa-solid fa-user-shield"></i> แผงควบคุมครูผู้สอน (Teacher Control Panel)
+          </h2>
+          <p class="text-xs text-slate-400">จัดการโจทย์ที่สร้างขึ้น ดูสถิติและตารางคะแนนนักเรียนแบบเรียลไทม์</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="changeTeacherPin()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-2 rounded-xl text-slate-300 transition">
+            <i class="fa-solid fa-key mr-1"></i> เปลี่ยนรหัส PIN ครู
+          </button>
+          <button onclick="toggleTeacherView()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-2 rounded-xl text-slate-300 transition">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> กลับหน้าผู้เรียน
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs inside Teacher View -->
+      <div class="flex border-b border-slate-800 text-sm font-semibold">
+        <button onclick="setTeacherTab('leaderboard')" id="tabBtnLeaderboard" class="px-5 py-3 border-b-2 border-amber-400 text-amber-400 transition flex items-center gap-2">
+          <i class="fa-solid fa-chart-simple"></i> ตารางคะแนน & รายงานผล
+        </button>
+        <button onclick="setTeacherTab('questions')" id="tabBtnQuestions" class="px-5 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2">
+          <i class="fa-solid fa-sliders"></i> ระบบคลังโจทย์ของครู
+        </button>
+      </div>
+
+      <!-- TAB 1: LEADERBOARD & CLASS ANALYTICS -->
+      <div id="teacherTabLeaderboard" class="space-y-6">
+        
+        <!-- Summary Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+            <div class="text-xs text-slate-400">จำนวนผู้เล่นทั้งหมด</div>
+            <div id="dashTotalPlayers" class="text-2xl font-bold text-white font-tech mt-1">0 คน</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+            <div class="text-xs text-slate-400">คะแนนสูงสุดในชั้นเรียน</div>
+            <div id="dashTopScore" class="text-2xl font-bold text-amber-400 font-tech mt-1">0 คะแนน</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+            <div class="text-xs text-slate-400">ทีมอันดับ 1 ในขณะนี้</div>
+            <div id="dashTopTeam" class="text-2xl font-bold text-emerald-400 font-tech mt-1">-</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+            <div class="text-xs text-slate-400">คำถามทั้งหมดที่ตอบแล้ว</div>
+            <div id="dashTotalAnswered" class="text-2xl font-bold text-indigo-400 font-tech mt-1">0 ข้อ</div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Table Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl p-5 space-y-4">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h3 class="text-md font-bold text-indigo-400 flex items-center gap-2 font-tech">
+              <i class="fa-solid fa-list-ol"></i> ตารางคะแนนนักเรียนเรียลไทม์ (Live Scoreboard)
+            </h3>
+
+            <!-- Filter and Export Actions -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <!-- Team Filter -->
+              <select id="filterTeam" onchange="renderLeaderboardTable()" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-xl px-3 py-2 outline-none">
+                <option value="all">🌐 แสดงทุกทีม</option>
+                <option value="red">🔴 เฉพาะทีมสีแดง</option>
+                <option value="blue">🔵 เฉพาะทีมสีน้ำเงิน</option>
+                <option value="green">🟢 เฉพาะทีมสีเขียว</option>
+                <option value="yellow">🟡 เฉพาะทีมสีเหลือง</option>
+              </select>
+
+              <!-- Export CSV Button -->
+              <button onclick="exportScoresToCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs px-3 py-2 rounded-xl font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-file-csv"></i> ส่งออกไฟล์ CSV
+              </button>
+
+              <!-- Clear All Scores Button -->
+              <button onclick="clearAllScores()" class="bg-rose-900/60 hover:bg-rose-800 border border-rose-700 text-rose-300 text-xs px-3 py-2 rounded-xl font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-trash-can"></i> รีเซ็ตคะแนนทั้งหมด
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Wrapper -->
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 font-tech text-[11px] uppercase border-b border-slate-800">
+                <tr>
+                  <th class="p-3 text-center">อันดับ</th>
+                  <th class="p-3">ชื่อ-นามสกุล</th>
+                  <th class="p-3 text-center">เลขที่</th>
+                  <th class="p-3 text-center">ทีม</th>
+                  <th class="p-3 text-center">ตอบถูก/ทั้งหมด</th>
+                  <th class="p-3 text-center">ความแม่นยำ</th>
+                  <th class="p-3 text-right">คะแนนรวม</th>
+                  <th class="p-3 text-center">การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardTbody" class="divide-y divide-slate-800">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: CUSTOM QUESTION MANAGEMENT -->
+      <div id="teacherTabQuestions" class="hidden space-y-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Question Bank Settings & Mode -->
+          <div class="lg:col-span-5 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-5">
+            <h3 class="text-md font-bold text-amber-400 flex items-center gap-2 font-tech">
+              <i class="fa-solid fa-gear"></i> การตั้งค่าการสุ่มโจทย์ในเกม
+            </h3>
+
+            <div class="space-y-3 text-sm">
+              <label class="text-xs text-slate-400 block font-semibold">โหมดการใช้โจทย์สำหรับนักเรียน:</label>
+              <div class="space-y-2">
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer hover:border-slate-700 transition">
+                  <input type="radio" name="qModeRadio" value="system" onchange="setQuestionSourceMode('system')" checked class="text-indigo-600 focus:ring-0">
+                  <span class="text-xs text-slate-200">1. สุ่มโจทย์อัตโนมัติจากระบบ (Infinite System Random)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer hover:border-slate-700 transition">
+                  <input type="radio" name="qModeRadio" value="custom" onchange="setQuestionSourceMode('custom')" class="text-indigo-600 focus:ring-0">
+                  <span class="text-xs text-slate-200">2. ใช้เฉพาะโจทย์ที่ครูสร้างเอง (Teacher Custom Bank)</span>
+                </label>
+                <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer hover:border-slate-700 transition">
+                  <input type="radio" name="qModeRadio" value="mixed" onchange="setQuestionSourceMode('mixed')" class="text-indigo-600 focus:ring-0">
+                  <span class="text-xs text-slate-200">3. ผสมโจทย์ระบบและโจทย์ที่ครูสร้าง (Mixed Mode)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Form to Add Custom Question -->
+            <hr class="border-slate-800">
+
+            <h3 class="text-md font-bold text-indigo-400 flex items-center gap-2 font-tech">
+              <i class="fa-solid fa-circle-plus"></i> สร้างโจทย์ใหม่ (Add New Question)
+            </h3>
+
+            <form id="createQuestionForm" onsubmit="handleCreateQuestion(event)" class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">แถบที่ 1 (หลักที่ 1)</label>
+                  <select id="newB1" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    <option value="1">🟤 1 (น้ำตาล)</option>
+                    <option value="2">🔴 2 (แดง)</option>
+                    <option value="3">🟠 3 (ส้ม)</option>
+                    <option value="4">🟡 4 (เหลือง)</option>
+                    <option value="5">🟢 5 (เขียว)</option>
+                    <option value="6">🔵 6 (น้ำเงิน)</option>
+                    <option value="7">🟣 7 (ม่วง)</option>
+                    <option value="8">⚪ 8 (เทา)</option>
+                    <option value="9">⚪ 9 (ขาว)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">แถบที่ 2 (หลักที่ 2)</label>
+                  <select id="newB2" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    <option value="0">⬛ 0 (ดำ)</option>
+                    <option value="1">🟤 1 (น้ำตาล)</option>
+                    <option value="2">🔴 2 (แดง)</option>
+                    <option value="3">🟠 3 (ส้ม)</option>
+                    <option value="4">🟡 4 (เหลือง)</option>
+                    <option value="5">🟢 5 (เขียว)</option>
+                    <option value="6">🔵 6 (น้ำเงิน)</option>
+                    <option value="7">🟣 7 (ม่วง)</option>
+                    <option value="8">⚪ 8 (เทา)</option>
+                    <option value="9">⚪ 9 (ขาว)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">แถบที่ 3 (ตัวคูณ)</label>
+                  <select id="newB3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    <option value="0">⬛ x1 (ดำ)</option>
+                    <option value="1">🟤 x10 (น้ำตาล)</option>
+                    <option value="2" selected>🔴 x100 (แดง)</option>
+                    <option value="3">🟠 x1k (ส้ม)</option>
+                    <option value="4">🟡 x10k (เหลือง)</option>
+                    <option value="5">🟢 x100k (เขียว)</option>
+                    <option value="6">🔵 x1M (น้ำเงิน)</option>
+                    <option value="-1">🥇 x0.1 (ทอง)</option>
+                    <option value="-2">🥈 x0.01 (เงิน)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[11px] text-slate-400 block mb-1">แถบที่ 4 (คลาดเคลื่อน)</label>
+                  <select id="newB4" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    <option value="5">🥇 ±5% (ทอง)</option>
+                    <option value="10">🥈 ±10% (เงิน)</option>
+                    <option value="1">🟤 ±1% (น้ำตาล)</option>
+                    <option value="2">🔴 ±2% (แดง)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Added Unit Selection & Targeted Game Mode -->
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[11px] text-amber-400 block mb-1 font-semibold">หน่วยความต้านทาน (Unit)</label>
+                  <select id="newUnit" class="w-full bg-slate-950 border border-amber-500/50 rounded-lg p-2 text-xs text-white">
+                    <option value="auto">🌐 แปลงอัตโนมัติ (Auto)</option>
+                    <option value="ohm">Ω (โอห์ม)</option>
+                    <option value="kohm">kΩ (กิโลโอห์ม)</option>
+                    <option value="Mohm">MΩ (เมกะโอห์ม)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[11px] text-amber-400 block mb-1 font-semibold">แสดงในโหมดเกม (Game Mode)</label>
+                  <select id="targetGameMode" class="w-full bg-slate-950 border border-amber-500/50 rounded-lg p-2 text-xs text-white">
+                    <option value="all">🎮 ทุกโหมดเกม</option>
+                    <option value="fill">1. โหมดเติมสี</option>
+                    <option value="calc">2. โหมดคำนวณค่า</option>
+                    <option value="team">3. แข่งแบบทีม</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">คำใบ้ / โน๊ตกำกับโจทย์ (ถ้ามี)</label>
+                <input type="text" id="newNote" placeholder="เช่น โจทย์ฝึกอ่านหลักสิบ, ข้อสอบกลางภาค" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none">
+              </div>
+
+              <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition">
+                <i class="fa-solid fa-plus-circle mr-1"></i> เพิ่มโจทย์ลงคลัง
+              </button>
+            </form>
+          </div>
+
+          <!-- Question Bank List -->
+          <div class="lg:col-span-7 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-md font-bold text-indigo-400 flex items-center gap-2 font-tech">
+                <i class="fa-solid fa-folder-open"></i> รายการโจทย์ที่ครูสร้างไว้ (<span id="customCountText">0</span> ข้อ)
+              </h3>
+              <button onclick="clearCustomQuestions()" class="text-xs text-rose-400 hover:underline">
+                <i class="fa-solid fa-trash"></i> ลบโจทย์ทั้งหมด
+              </button>
+            </div>
+
+            <div id="customQuestionList" class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+              <!-- Custom questions injected via JS -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Reference Table Modal -->
+  <div id="refModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 p-6 rounded-2xl max-w-2xl w-full border border-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-indigo-400 font-tech flex items-center gap-2">
+          <i class="fa-solid fa-table"></i> ตารางอ้างอิงรหัสสีตัวต้านทาน (4 แถบสี)
+        </h3>
+        <button onclick="toggleModal('refModal')" class="text-slate-400 hover:text-white text-xl font-bold p-1">✕</button>
+      </div>
+      
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-xs text-left text-slate-300">
+          <thead class="bg-slate-950 text-slate-200 font-tech">
+            <tr>
+              <th class="p-2.5">แถบสี</th>
+              <th class="p-2.5 text-center">หลักที่ 1 & 2</th>
+              <th class="p-2.5 text-center">ตัวคูณ (Multiplier)</th>
+              <th class="p-2.5 text-center">ค่าความคลาดเคลื่อน</th>
+              <th class="p-2.5 text-center">เทคนิคท่องจำ</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            <tr><td class="p-2 font-bold">⬛ ดำ (Black)</td><td class="p-2 text-center">0</td><td class="p-2 text-center">x10⁰ (1)</td><td class="p-2 text-center">-</td><td class="p-2 text-center text-slate-400">ดำ 0</td></tr>
+            <tr><td class="p-2 font-bold text-amber-700">🟤 น้ำตาล (Brown)</td><td class="p-2 text-center">1</td><td class="p-2 text-center">x10¹ (10)</td><td class="p-2 text-center">±1%</td><td class="p-2 text-center text-slate-400">ตาล 1</td></tr>
+            <tr><td class="p-2 font-bold text-rose-500">🔴 แดง (Red)</td><td class="p-2 text-center">2</td><td class="p-2 text-center">x10² (100)</td><td class="p-2 text-center">±2%</td><td class="p-2 text-center text-slate-400">แดง 2</td></tr>
+            <tr><td class="p-2 font-bold text-orange-400">🟠 ส้ม (Orange)</td><td class="p-2 text-center">3</td><td class="p-2 text-center">x10³ (1k)</td><td class="p-2 text-center">-</td><td class="p-2 text-center text-slate-400">ส้ม 3</td></tr>
+            <tr><td class="p-2 font-bold text-yellow-400">🟡 เหลือง (Yellow)</td><td class="p-2 text-center">4</td><td class="p-2 text-center">x10⁴ (10k)</td><td class="p-2 text-center">-</td><td class="p-2 text-center text-slate-400">เหลือง 4</td></tr>
+            <tr><td class="p-2 font-bold text-emerald-400">🟢 เขียว (Green)</td><td class="p-2 text-center">5</td><td class="p-2 text-center">x10⁵ (100k)</td><td class="p-2 text-center">±0.5%</td><td class="p-2 text-center text-slate-400">เขียว 5</td></tr>
+            <tr><td class="p-2 font-bold text-blue-400">🔵 น้ำเงิน (Blue)</td><td class="p-2 text-center">6</td><td class="p-2 text-center">x10⁶ (1M)</td><td class="p-2 text-center">±0.25%</td><td class="p-2 text-center text-slate-400">น้ำเงิน 6</td></tr>
+            <tr><td class="p-2 font-bold text-purple-400">🟣 ม่วง (Violet)</td><td class="p-2 text-center">7</td><td class="p-2 text-center">x10⁷ (10M)</td><td class="p-2 text-center">±0.1%</td><td class="p-2 text-center text-slate-400">ม่วง 7</td></tr>
+            <tr><td class="p-2 font-bold text-slate-400">⚪ เทา (Grey)</td><td class="p-2 text-center">8</td><td class="p-2 text-center">x10⁸</td><td class="p-2 text-center">±0.05%</td><td class="p-2 text-center text-slate-400">เทา 8</td></tr>
+            <tr><td class="p-2 font-bold text-white">⚪ ขาว (White)</td><td class="p-2 text-center">9</td><td class="p-2 text-center">x10⁹</td><td class="p-2 text-center">-</td><td class="p-2 text-center text-slate-400">ขาว 9</td></tr>
+            <tr><td class="p-2 font-bold text-amber-300">🥇 ทอง (Gold)</td><td class="p-2 text-center">-</td><td class="p-2 text-center">x0.1</td><td class="p-2 text-center">±5%</td><td class="p-2 text-center text-amber-300 font-bold">ทอง 5%</td></tr>
+            <tr><td class="p-2 font-bold text-slate-300">🥈 เงิน (Silver)</td><td class="p-2 text-center">-</td><td class="p-2 text-center">x0.01</td><td class="p-2 text-center">±10%</td><td class="p-2 text-center text-slate-300 font-bold">เงิน 10%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="mt-4 text-center">
+        <button onclick="toggleModal('refModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded-xl text-xs transition">
+          เข้าใจแล้ว / ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="max-w-6xl mx-auto w-full text-center text-slate-400 text-xs py-4 border-t border-slate-900 mt-8 flex flex-col md:flex-row justify-between items-center gap-2">
+    <div>สื่อการเรียนรู้เชิงโต้ตอบ กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (ฟิสิกส์ ม.5)</div>
+    <div class="font-tech text-indigo-400">Interactive Resistor Simulator & Assessment Platform</div>
+  </footer>
+
+  <!-- Web Audio API Synthesizer (No external sound files required) -->
+  <script>
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+    }
+
+    function playSound(type) {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'correct') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now); // A3
+          osc.frequency.linearRampToValueAtTime(140, now + 0.2);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'win') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {
+        console.log("Audio play error:", e);
+      }
+    }
+  </script>
+
+  <!-- MAIN APPLICATION LOGIC -->
+  <script>
+    // --- Data Constants ---
+    const COLOR_HEX_MAP = {
+      "0": "#000000",  // Black
+      "1": "#78350f",  // Brown
+      "2": "#dc2626",  // Red
+      "3": "#ea580c",  // Orange
+      "4": "#ca8a04",  // Yellow
+      "5": "#16a34a",  // Green
+      "6": "#2563eb",  // Blue
+      "7": "#9333ea",  // Violet
+      "8": "#64748b",  // Grey
+      "9": "#ffffff",  // White
+      "-1": "#eab308", // Gold (x0.1)
+      "-2": "#94a3b8"  // Silver (x0.01)
+    };
+
+    const COLOR_NAMES_TH = {
+      "0": "ดำ", "1": "น้ำตาล", "2": "แดง", "3": "ส้ม", "4": "เหลือง",
+      "5": "เขียว", "6": "น้ำเงิน", "7": "ม่วง", "8": "เทา", "9": "ขาว",
+      "-1": "ทอง", "-2": "เงิน"
+    };
+
+    // --- State Management ---
+    let teacherPin = "1234";
+    let isTeacherView = false;
+    let activeGameMode = 'fill'; // 'fill', 'calc', 'team'
+    let questionSourceMode = 'system'; // 'system', 'custom', 'mixed'
+
+    // Current player session
+    let currentPlayer = {
+      name: 'นักเรียน ม.5',
+      no: '01',
+      team: 'red',
+      score: 0,
+      correctCount: 0,
+      totalCount: 0
+    };
+
+    // Current Active Question
+    let currentQuestion = null;
+
+    // Team Game Timer State
+    let teamTimer = null;
+    let timeLeft = 60;
+    let isTeamMatchRunning = false;
+
+    // Persistent Scores Database & Custom Questions Store
+    let leaderboardStore = [
+      { name: 'สมชาย เรียนดี', no: '05', team: 'red', score: 500, correct: 5, total: 5 },
+      { name: 'สายรุ้ง ขยันทำ', no: '12', team: 'blue', score: 400, correct: 4, total: 5 },
+      { name: 'กิตติศักดิ์ ชัยชนะ', no: '03', team: 'green', score: 300, correct: 3, total: 4 }
+    ];
+
+    let customQuestionsStore = [
+      { id: 'c1', b1: 1, b2: 0, b3: 2, tol: 5, unit: 'auto', targetMode: 'all', note: 'ตัวต้านทาน 1kΩ ยอดนิยม', active: true },
+      { id: 'c2', b1: 4, b2: 7, b3: 3, tol: 5, unit: 'kohm', targetMode: 'fill', note: 'ตัวต้านทาน 47kΩ', active: true }
+    ];
+
+    // --- Core Helper Functions ---
+    function formatResistanceText(b1, b2, b3, tol, chosenUnit = 'auto') {
+      const baseDigit = b1 * 10 + b2;
+      let numericVal = 0;
+      if (b3 >= 0) {
+        numericVal = baseDigit * Math.pow(10, b3);
+      } else if (b3 === -1) {
+        numericVal = baseDigit * 0.1;
+      } else if (b3 === -2) {
+        numericVal = baseDigit * 0.01;
+      }
+
+      let valStr = "";
+      if (chosenUnit === 'ohm') {
+        valStr = numericVal.toLocaleString() + " ";
+      } else if (chosenUnit === 'kohm') {
+        valStr = (numericVal / 1000).toLocaleString() + " k";
+      } else if (chosenUnit === 'Mohm') {
+        valStr = (numericVal / 1000000).toLocaleString() + " M";
+      } else {
+        // Auto formatting
+        if (numericVal >= 1000000) {
+          valStr = (numericVal / 1000000).toLocaleString() + " M";
+        } else if (numericVal >= 1000) {
+          valStr = (numericVal / 1000).toLocaleString() + " k";
+        } else {
+          valStr = numericVal.toLocaleString() + " ";
+        }
+      }
+
+      return {
+        formattedText: `${valStr}Ω ± ${tol}%`,
+        rawValue: numericVal
+      };
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let bg = 'bg-indigo-900/90 border-indigo-500 text-indigo-100';
+      let icon = 'fa-circle-info';
+      if (type === 'success') {
+        bg = 'bg-emerald-900/90 border-emerald-500 text-emerald-100';
+        icon = 'fa-circle-check';
+      } else if (type === 'error') {
+        bg = 'bg-rose-900/90 border-rose-500 text-rose-100';
+        icon = 'fa-triangle-exclamation';
+      }
+
+      toast.className = `${bg} border backdrop-blur px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs md:text-sm font-semibold transform transition-all duration-300 translate-y-2 pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2'); }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function toggleModal(modalId) {
+      document.getElementById(modalId).classList.toggle('hidden');
+    }
+
+    // --- Profile & Player Updates ---
+    function updatePlayerProfile() {
+      currentPlayer.name = document.getElementById('playerName').value || 'นักเรียน ม.5';
+      currentPlayer.no = document.getElementById('playerNo').value || '01';
+      currentPlayer.team = document.getElementById('playerTeam').value || 'red';
+      saveCurrentScoreToStore();
+    }
+
+    function saveCurrentScoreToStore() {
+      // Find or insert existing player record
+      let match = leaderboardStore.find(p => p.name === currentPlayer.name && p.no === currentPlayer.no);
+      if (match) {
+        match.team = currentPlayer.team;
+        match.score = currentPlayer.score;
+        match.correct = currentPlayer.correctCount;
+        match.total = currentPlayer.totalCount;
+      } else {
+        leaderboardStore.push({
+          name: currentPlayer.name,
+          no: currentPlayer.no,
+          team: currentPlayer.team,
+          score: currentPlayer.score,
+          correct: currentPlayer.correctCount,
+          total: currentPlayer.totalCount
+        });
+      }
+      renderLeaderboardTable();
+    }
+
+    // --- Resistor SVG Graphics Renderer ---
+    function setResistorSVGBands(b1, b2, b3, tol) {
+      document.getElementById('band1').setAttribute('fill', COLOR_HEX_MAP[b1]);
+      document.getElementById('band2').setAttribute('fill', COLOR_HEX_MAP[b2]);
+      document.getElementById('band3').setAttribute('fill', COLOR_HEX_MAP[b3]);
+
+      let tolHex = '#eab308'; // default Gold 5%
+      if (tol === 10) tolHex = '#94a3b8';
+      else if (tol === 1) tolHex = '#78350f';
+      else if (tol === 2) tolHex = '#dc2626';
+
+      document.getElementById('band4').setAttribute('fill', tolHex);
+    }
+
+    function updateResistorSVGFromInputs() {
+      const b1 = parseInt(document.getElementById('selBand1').value);
+      const b2 = parseInt(document.getElementById('selBand2').value);
+      const b3 = parseInt(document.getElementById('selBand3').value);
+      const b4 = parseInt(document.getElementById('selBand4').value);
+      setResistorSVGBands(b1, b2, b3, b4);
+    }
+
+    // --- Question Generation Logic ---
+    function generateRandomQuestion() {
+      // Pick custom or system filtered by active game mode
+      const activeCustoms = customQuestionsStore.filter(q => q.active && (q.targetMode === 'all' || q.targetMode === activeGameMode));
+      let useCustom = false;
+
+      if (questionSourceMode === 'custom' && activeCustoms.length > 0) {
+        useCustom = true;
+      } else if (questionSourceMode === 'mixed' && activeCustoms.length > 0) {
+        useCustom = Math.random() < 0.5;
+      }
+
+      if (useCustom) {
+        const qObj = activeCustoms[Math.floor(Math.random() * activeCustoms.length)];
+        const formatted = formatResistanceText(qObj.b1, qObj.b2, qObj.b3, qObj.tol, qObj.unit || 'auto');
+        return {
+          b1: qObj.b1, b2: qObj.b2, b3: qObj.b3, tol: qObj.tol,
+          text: formatted.formattedText,
+          isCustom: true
+        };
+      }
+
+      // Generate Standard Random Question
+      const b1 = Math.floor(Math.random() * 9) + 1; // 1-9
+      const b2 = Math.floor(Math.random() * 10);    // 0-9
+      const b3Options = [0, 1, 2, 3, 4, 5, -1];
+      const b3 = b3Options[Math.floor(Math.random() * b3Options.length)];
+      const tolOptions = [5, 10, 1, 2];
+      const tol = tolOptions[Math.floor(Math.random() * tolOptions.length)];
+
+      const formatted = formatResistanceText(b1, b2, b3, tol, 'auto');
+      return { b1, b2, b3, tol, text: formatted.formattedText, isCustom: false };
+    }
+
+    function nextQuestion() {
+      currentQuestion = generateRandomQuestion();
+
+      // Show/Hide custom question badge
+      if (currentQuestion.isCustom) {
+        document.getElementById('customTag').classList.remove('hidden');
+      } else {
+        document.getElementById('customTag').classList.add('hidden');
+      }
+
+      if (activeGameMode === 'fill') {
+        document.getElementById('targetText').innerText = currentQuestion.text;
+        updateResistorSVGFromInputs();
+      } else {
+        // Calc Mode & Team Mode
+        document.getElementById('targetText').innerText = '???';
+        setResistorSVGBands(currentQuestion.b1, currentQuestion.b2, currentQuestion.b3, currentQuestion.tol);
+
+        // Generate choices
+        const choices = [currentQuestion.text];
+        while (choices.length < 4) {
+          const dummy = generateRandomQuestion();
+          if (!choices.includes(dummy.text)) {
+            choices.push(dummy.text);
+          }
+        }
+        // Shuffle choices
+        choices.sort(() => Math.random() - 0.5);
+
+        const choiceContainer = document.getElementById('choiceContainer');
+        choiceContainer.innerHTML = '';
+        choices.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = "bg-slate-950 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500 p-3.5 rounded-xl font-bold text-sm text-center text-white font-tech transition transform active:scale-98 shadow-md";
+          btn.innerText = c;
+          btn.onclick = () => checkChoiceAnswer(c);
+          choiceContainer.appendChild(btn);
+        });
+      }
+    }
+
+    // --- Game Logic Controls & Answer Verification ---
+    function checkFillAnswer() {
+      const u1 = parseInt(document.getElementById('selBand1').value);
+      const u2 = parseInt(document.getElementById('selBand2').value);
+      const u3 = parseInt(document.getElementById('selBand3').value);
+      const u4 = parseInt(document.getElementById('selBand4').value);
+
+      currentPlayer.totalCount++;
+
+      if (u1 === currentQuestion.b1 && u2 === currentQuestion.b2 && u3 === currentQuestion.b3 && u4 === currentQuestion.tol) {
+        // Correct
+        playSound('correct');
+        currentPlayer.score += 100;
+        currentPlayer.correctCount++;
+        showToast("🎉 ถูกต้อง! +100 คะแนน", "success");
+      } else {
+        // Wrong
+        playSound('wrong');
+        showToast(`❌ คำตอบยังไม่ถูกต้อง (คำตอบคือ: ${COLOR_NAMES_TH[currentQuestion.b1]}-${COLOR_NAMES_TH[currentQuestion.b2]}-${COLOR_NAMES_TH[currentQuestion.b3]})`, "error");
+      }
+
+      updateStatsUI();
+      saveCurrentScoreToStore();
+      nextQuestion();
+    }
+
+    function checkChoiceAnswer(selectedText) {
+      if (activeGameMode === 'team' && !isTeamMatchRunning) return;
+
+      currentPlayer.totalCount++;
+
+      if (selectedText === currentQuestion.text) {
+        playSound('correct');
+        currentPlayer.score += 100;
+        currentPlayer.correctCount++;
+        showToast("🎉 เก่งมาก! ตอบถูกต้อง +100 คะแนน", "success");
+      } else {
+        playSound('wrong');
+        showToast(`❌ เฉลย: ${currentQuestion.text}`, "error");
+      }
+
+      updateStatsUI();
+      saveCurrentScoreToStore();
+      nextQuestion();
+    }
+
+    function updateStatsUI() {
+      document.getElementById('scoreText').innerText = currentPlayer.score;
+      document.getElementById('statCorrect').innerText = `${currentPlayer.correctCount} ข้อ`;
+
+      const acc = currentPlayer.totalCount > 0 ? Math.round((currentPlayer.correctCount / currentPlayer.totalCount) * 100) : 0;
+      document.getElementById('statAccuracy').innerText = `${acc}%`;
+    }
+
+    // --- Game Modes Switcher ---
+    function setGameMode(mode) {
+      activeGameMode = mode;
+
+      // Stop any running timer
+      clearInterval(teamTimer);
+      isTeamMatchRunning = false;
+      document.getElementById('timerBox').classList.add('hidden');
+      document.getElementById('teamStartOverlay').classList.add('hidden');
+
+      // Update button styles
+      ['fill', 'calc', 'team'].forEach(m => {
+        const btn = document.getElementById(`btn-mode-${m}`);
+        if (m === mode) {
+          btn.className = "w-full text-left p-3.5 rounded-xl border-2 border-indigo-500 bg-indigo-950/50 hover:bg-indigo-900/50 transition flex items-center justify-between group shadow-lg";
+        } else {
+          btn.className = "w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/60 transition flex items-center justify-between group";
+        }
+      });
+
+      if (mode === 'fill') {
+        document.getElementById('modeBadge').innerText = 'โหมด 1: ระบายสีตัวต้านทาน';
+        document.getElementById('questHeaderLabel').innerText = 'จงเลือกแถบสีให้ตรงกับค่าความต้านทานที่กำหนด:';
+        document.getElementById('fillControls').classList.remove('hidden');
+        document.getElementById('calcControls').classList.add('hidden');
+        nextQuestion();
+      } else if (mode === 'calc') {
+        document.getElementById('modeBadge').innerText = 'โหมด 2: อ่านและคำนวณค่า';
+        document.getElementById('questHeaderLabel').innerText = 'จงคำนวณค่าโอห์มและเลือกตอบให้ถูกต้อง:';
+        document.getElementById('fillControls').classList.add('hidden');
+        document.getElementById('calcControls').classList.remove('hidden');
+        nextQuestion();
+      } else if (mode === 'team') {
+        document.getElementById('modeBadge').innerText = 'โหมด 3: แข่งทำเวลาสะสมคะแนนทีม';
+        document.getElementById('questHeaderLabel').innerText = 'เตรียมพร้อมแข่งขันทำเวลา:';
+        document.getElementById('fillControls').classList.add('hidden');
+        document.getElementById('calcControls').classList.remove('hidden');
+        document.getElementById('timerBox').classList.remove('hidden');
+        document.getElementById('teamStartOverlay').classList.remove('hidden');
+      }
+    }
+
+    function startTeamMatch() {
+      document.getElementById('teamStartOverlay').classList.add('hidden');
+      isTeamMatchRunning = true;
+      timeLeft = 60;
+      document.getElementById('timerText').innerText = timeLeft;
+
+      nextQuestion();
+
+      teamTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timerText').innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(teamTimer);
+          isTeamMatchRunning = false;
+          playSound('win');
+          showToast(`⏱️ หมดเวลา! คุณทำคะแนนรวมได้ ${currentPlayer.score} คะแนน`, "success");
+          document.getElementById('teamStartOverlay').classList.remove('hidden');
+        }
+      }, 1000);
+    }
+
+    // --- Teacher View Authentication & Controls ---
+    function toggleTeacherView() {
+      if (isTeacherView) {
+        // Switch to Student View
+        isTeacherView = false;
+        document.getElementById('teacherView').classList.add('hidden');
+        document.getElementById('studentView').classList.remove('hidden');
+        document.getElementById('teacherToggleText').innerText = "เข้าสู่โหมดครูผู้สอน";
+      } else {
+        // Auth with PIN
+        const enteredPin = prompt("กรุณากรอกรหัส PIN ครูผู้สอน:", "");
+        if (enteredPin === teacherPin) {
+          isTeacherView = true;
+          document.getElementById('studentView').classList.add('hidden');
+          document.getElementById('teacherView').classList.remove('hidden');
+          document.getElementById('teacherToggleText').innerText = "สลับเป็นหน้าผู้เรียน";
+          showToast("🔓 เข้าสู่แผงควบคุมครูผู้สอนเรียบร้อย", "success");
+          renderLeaderboardTable();
+          renderCustomQuestionsList();
+        } else if (enteredPin !== null) {
+          playSound('wrong');
+          alert("❌ รหัส PIN ไม่ถูกต้อง (รหัสเริ่มต้นคือ 1234)");
+        }
+      }
+    }
+
+    function changeTeacherPin() {
+      const newPin = prompt("กรอกรหัส PIN ใหม่ที่ต้องการตั้งค่า:", teacherPin);
+      if (newPin && newPin.trim().length >= 4) {
+        teacherPin = newPin.trim();
+        showToast("🔑 เปลี่ยนรหัส PIN ครูสำเร็จแล้ว", "success");
+      } else if (newPin !== null) {
+        alert("รหัส PIN ต้องมีความยาวอย่างน้อย 4 ตัวอักษร");
+      }
+    }
+
+    function setTeacherTab(tab) {
+      if (tab === 'leaderboard') {
+        document.getElementById('teacherTabLeaderboard').classList.remove('hidden');
+        document.getElementById('teacherTabQuestions').classList.add('hidden');
+        document.getElementById('tabBtnLeaderboard').className = "px-5 py-3 border-b-2 border-amber-400 text-amber-400 font-bold transition flex items-center gap-2";
+        document.getElementById('tabBtnQuestions').className = "px-5 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2";
+      } else {
+        document.getElementById('teacherTabLeaderboard').classList.add('hidden');
+        document.getElementById('teacherTabQuestions').classList.remove('hidden');
+        document.getElementById('tabBtnQuestions').className = "px-5 py-3 border-b-2 border-amber-400 text-amber-400 font-bold transition flex items-center gap-2";
+        document.getElementById('tabBtnLeaderboard').className = "px-5 py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2";
+      }
+    }
+
+    // --- Teacher Leaderboard & Stats Logic ---
+    function renderLeaderboardTable() {
+      const filter = document.getElementById('filterTeam').value;
+      let list = [...leaderboardStore];
+
+      if (filter !== 'all') {
+        list = list.filter(item => item.team === filter);
+      }
+
+      // Sort by score descending
+      list.sort((a, b) => b.score - a.score);
+
+      const tbody = document.getElementById('leaderboardTbody');
+      tbody.innerHTML = '';
+
+      // Update Top Summary Stats
+      document.getElementById('dashTotalPlayers').innerText = `${leaderboardStore.length} คน`;
+      const topScoreVal = leaderboardStore.length > 0 ? Math.max(...leaderboardStore.map(s => s.score)) : 0;
+      document.getElementById('dashTopScore').innerText = `${topScoreVal} คะแนน`;
+
+      // Calculate Top Team
+      const teamSums = { red: 0, blue: 0, green: 0, yellow: 0 };
+      leaderboardStore.forEach(p => teamSums[p.team] = (teamSums[p.team] || 0) + p.score);
+      let bestTeam = '-';
+      let maxTeamScore = -1;
+      for (const [t, sc] of Object.entries(teamSums)) {
+        if (sc > maxTeamScore && sc > 0) {
+          maxTeamScore = sc;
+          bestTeam = t === 'red' ? '🔴 สีแดง' : (t === 'blue' ? '🔵 สีน้ำเงิน' : (t === 'green' ? '🟢 สีเขียว' : '🟡 สีเหลือง'));
+        }
+      }
+      document.getElementById('dashTopTeam').innerText = bestTeam;
+
+      const totalAns = leaderboardStore.reduce((sum, p) => sum + (p.total || 0), 0);
+      document.getElementById('dashTotalAnswered').innerText = `${totalAns} ข้อ`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center p-6 text-slate-500">ยังไม่มีข้อมูลคะแนนนักเรียน</td></tr>`;
+        return;
+      }
+
+      const teamBadges = {
+        red: '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-md">🔴 สีแดง</span>',
+        blue: '<span class="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-md">🔵 สีน้ำเงิน</span>',
+        green: '<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md">🟢 สีเขียว</span>',
+        yellow: '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md">🟡 สีเหลือง</span>'
+      };
+
+      list.forEach((item, index) => {
+        const accuracy = item.total > 0 ? Math.round((item.correct / item.total) * 100) : 0;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/50 transition";
+        tr.innerHTML = `
+          <td class="p-3 text-center font-tech font-bold ${index === 0 ? 'text-amber-400 text-sm' : 'text-slate-400'}">
+            ${index === 0 ? '🥇 1' : (index === 1 ? '🥈 2' : (index === 2 ? '🥉 3' : index + 1))}
+          </td>
+          <td class="p-3 font-semibold text-white">${item.name}</td>
+          <td class="p-3 text-center text-slate-400 font-tech">${item.no}</td>
+          <td class="p-3 text-center text-xs">${teamBadges[item.team] || item.team}</td>
+          <td class="p-3 text-center font-tech">${item.correct}/${item.total}</td>
+          <td class="p-3 text-center font-tech text-indigo-400">${accuracy}%</td>
+          <td class="p-3 text-right font-tech font-bold text-amber-400 text-sm">${item.score}</td>
+          <td class="p-3 text-center">
+            <button onclick="resetSingleScore('${item.name}', '${item.no}')" class="text-rose-400 hover:text-rose-300 p-1" title="รีเซ็ตคะแนนนักเรียนคนนี้">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportScoresToCSV() {
+      if (leaderboardStore.length === 0) {
+        alert("ไม่มีข้อมูลคะแนนสำหรับส่งออก");
+        return;
+      }
+
+      let csvContent = "\uFEFF"; // BOM for UTF-8 Excel support
+      csvContent += "อันดับ,ชื่อ-นามสกุล,เลขที่,ทีม,ตอบถูก,ตอบทั้งหมด,ความแม่นยำ(%),คะแนนรวม\n";
+
+      const sorted = [...leaderboardStore].sort((a, b) => b.score - a.score);
+      sorted.forEach((item, idx) => {
+        const acc = item.total > 0 ? Math.round((item.correct / item.total) * 100) : 0;
+        csvContent += `${idx + 1},"${item.name}",${item.no},${item.team},${item.correct},${item.total},${acc}%,${item.score}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `รายงานคะแนน_อ่านแถบสีตัวต้านทาน_ม5_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("📥 ดาวน์โหลดรายงานคะแนน CSV เรียบร้อย", "success");
+    }
+
+    function clearAllScores() {
+      if (confirm("คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตคะแนนของนักเรียนทั้งหมด?")) {
+        leaderboardStore = [];
+        currentPlayer.score = 0;
+        currentPlayer.correctCount = 0;
+        currentPlayer.totalCount = 0;
+        updateStatsUI();
+        renderLeaderboardTable();
+        showToast("🧹 รีเซ็ตคะแนนทั้งหมดเรียบร้อยแล้ว", "success");
+      }
+    }
+
+    function resetSingleScore(name, no) {
+      if (confirm(`ต้องการรีเซ็ตคะแนนของ ${name} ใช่หรือไม่?`)) {
+        leaderboardStore = leaderboardStore.filter(p => !(p.name === name && p.no === no));
+        if (currentPlayer.name === name && currentPlayer.no === no) {
+          currentPlayer.score = 0;
+          currentPlayer.correctCount = 0;
+          currentPlayer.totalCount = 0;
+          updateStatsUI();
+        }
+        renderLeaderboardTable();
+        showToast("รีเซ็ตคะแนนนักเรียนสำเร็จ", "success");
+      }
+    }
+
+    // --- Teacher Custom Question Bank Logic ---
+    function setQuestionSourceMode(mode) {
+      questionSourceMode = mode;
+      const badge = document.getElementById('qBankBadge');
+      if (mode === 'system') badge.innerText = 'โหมดสุ่มระบบ';
+      else if (mode === 'custom') badge.innerText = 'โหมดโจทย์ครูเท่านั้น';
+      else badge.innerText = 'โหมดสุ่มผสม';
+      showToast(`เปลี่ยนโหมดแหล่งโจทย์เป็น: ${badge.innerText}`, "info");
+      nextQuestion();
+    }
+
+    function handleCreateQuestion(e) {
+      e.preventDefault();
+      const b1 = parseInt(document.getElementById('newB1').value);
+      const b2 = parseInt(document.getElementById('newB2').value);
+      const b3 = parseInt(document.getElementById('newB3').value);
+      const tol = parseInt(document.getElementById('newB4').value);
+      const unit = document.getElementById('newUnit').value;
+      const targetMode = document.getElementById('targetGameMode').value;
+      const note = document.getElementById('newNote').value || 'โจทย์กำหนดเอง';
+
+      const newQ = {
+        id: 'c_' + Date.now(),
+        b1, b2, b3, tol, unit, targetMode, note,
+        active: true
+      };
+
+      customQuestionsStore.push(newQ);
+      document.getElementById('newNote').value = '';
+      renderCustomQuestionsList();
+      showToast("➕ เพิ่มโจทย์ใหม่ลงคลังสำเร็จ!", "success");
+    }
+
+    function renderCustomQuestionsList() {
+      const container = document.getElementById('customQuestionList');
+      document.getElementById('customCountText').innerText = customQuestionsStore.length;
+      container.innerHTML = '';
+
+      if (customQuestionsStore.length === 0) {
+        container.innerHTML = `<div class="text-center p-6 text-slate-500 text-xs">ยังไม่มีโจทย์ที่สร้างไว้ คุณสามารถเพิ่มโจทย์ใหม่ได้จากฟอร์มด้านซ้าย</div>`;
+        return;
+      }
+
+      const modeLabels = {
+        all: '🎮 ทุกโหมด',
+        fill: '1. โหมดเติมสี',
+        calc: '2. โหมดคำนวณ',
+        team: '3. โหมดทีม'
+      };
+
+      const unitLabels = {
+        auto: 'Auto',
+        ohm: 'Ω',
+        kohm: 'kΩ',
+        Mohm: 'MΩ'
+      };
+
+      customQuestionsStore.forEach((q, idx) => {
+        const formatted = formatResistanceText(q.b1, q.b2, q.b3, q.tol, q.unit || 'auto');
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-xl border ${q.active ? 'bg-slate-950 border-slate-800' : 'bg-slate-950/40 border-slate-900 opacity-60'} flex items-center justify-between gap-3 text-xs`;
+        
+        card.innerHTML = `
+          <div class="space-y-1">
+            <div class="font-bold text-emerald-400 font-tech text-sm flex items-center gap-2">
+              <span>ข้อ ${idx + 1}: ${formatted.formattedText}</span>
+              <span class="text-[10px] bg-slate-800 text-amber-300 border border-slate-700 px-1.5 py-0.5 rounded">${unitLabels[q.unit || 'auto']}</span>
+              <span class="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 px-1.5 py-0.5 rounded">${modeLabels[q.targetMode || 'all']}</span>
+            </div>
+            <div class="text-[11px] text-slate-400">
+              แถบสี: ${COLOR_NAMES_TH[q.b1]} - ${COLOR_NAMES_TH[q.b2]} - ${COLOR_NAMES_TH[q.b3]} - ${COLOR_NAMES_TH[q.tol] || 'ทอง'}
+              <span class="ml-2 text-amber-400/80">(${q.note})</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleCustomQuestionActive('${q.id}')" class="px-2 py-1 rounded-md text-[10px] font-bold ${q.active ? 'bg-indigo-900/60 text-indigo-300 border border-indigo-700' : 'bg-slate-800 text-slate-500'}">
+              ${q.active ? 'เปิดใช้งาน' : 'ปิดไว้'}
+            </button>
+            <button onclick="deleteCustomQuestion('${q.id}')" class="text-rose-400 hover:text-rose-300 p-1">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleCustomQuestionActive(id) {
+      const q = customQuestionsStore.find(item => item.id === id);
+      if (q) {
+        q.active = !q.active;
+        renderCustomQuestionsList();
+      }
+    }
+
+    function deleteCustomQuestion(id) {
+      customQuestionsStore = customQuestionsStore.filter(item => item.id !== id);
+      renderCustomQuestionsList();
+      showToast("ลบโจทย์ออกจากคลังสำเร็จ", "info");
+    }
+
+    function clearCustomQuestions() {
+      if (confirm("ลบโจทย์ที่ครูสร้างไว้ทั้งหมดหรือไม่?")) {
+        customQuestionsStore = [];
+        renderCustomQuestionsList();
+      }
+    }
+
+    // --- On Window Load Initializer ---
+    window.onload = function () {
+      updatePlayerProfile();
+      renderLeaderboardTable();
+      nextQuestion();
+    };
+  </script>
+</body>
+</html>
